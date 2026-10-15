@@ -1,0 +1,762 @@
+ import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from "recharts";
+import { 
+  Globe, Users, Network, TrendingUp, ShieldCheck, BookOpen, 
+  Settings, ChevronRight, ChevronLeft, CheckCircle2, XCircle, ArrowUpRight, PlayCircle
+} from "lucide-react";
+
+const timelineData = [
+  { year: "1976", event: "Thành viên IMF, WB & ADB", desc: "Việt Nam trở thành thành viên chính thức của Quỹ Tiền tệ Quốc tế, Ngân hàng Thế giới và Ngân hàng Phát triển Châu Á.", icon: "🏛️" },
+  { year: "1995", event: "Gia nhập ASEAN", desc: "Bước đi lịch sử trong hội nhập khu vực, mở ra cơ hội hợp tác toàn diện với các nước Đông Nam Á.", icon: "🤝" },
+  { year: "01/01/1996", event: "Tham gia AFTA", desc: "Chính thức tham gia Khu vực Thương mại Tự do ASEAN, bắt đầu lộ trình cắt giảm thuế quan.", icon: "📉" },
+  { year: "1998", event: "Thành viên APEC", desc: "Trở thành thành viên của Diễn đàn Hợp tác Kinh tế Châu Á – Thái Bình Dương.", icon: "🌏" },
+  { year: "2007", event: "Gia nhập WTO", desc: "Dấu mốc ý nghĩa nhất, đánh dấu sự hội nhập toàn diện và sâu rộng vào nền kinh tế toàn cầu.", icon: "🌍" },
+  { year: "Gần đây", event: "Các FTA thế hệ mới", desc: "Tích cực tham gia các Hiệp định thương mại tự do thế hệ mới như CPTPP, EVFTA...", icon: "📜" },
+  { year: "Hiện nay", event: "Kết nối 230 quốc gia", desc: "Có quan hệ kinh tế, thương mại và đầu tư với 230 quốc gia và vùng lãnh thổ.", icon: "🌐" },
+];
+
+const chartData = [
+  { year: '1986', export: 0.789, import: 2.155 },
+  { year: '1996', export: 0.726, import: 11.14 },
+  { year: '2006', export: 39.80, import: 44.90 },
+  { year: '2016', export: 176.6, import: 174.98 },
+  { year: '2017', export: 214.10, import: 211.10 },
+  { year: '2018', export: 243.48, import: 236.69 },
+  { year: '2019', export: 264.19, import: 253.07 },
+  { year: '2020', export: 282.66, import: 262.70 },
+  { year: '2021', export: 336.30, import: 332.20 },
+  { year: '2022', export: 371.30, import: 358.90 },
+];
+
+const quizQuestions = [
+  {
+    question: "Hội nhập quốc tế ở Việt Nam tập trung trọng tâm vào lĩnh vực nào?",
+    options: ["Quốc phòng - An ninh", "Văn hóa - Xã hội", "Kinh tế", "Giáo dục và Đào tạo"],
+    correct: 2,
+    explanation: "Theo tài liệu, trong các lĩnh vực hội nhập, hội nhập kinh tế quốc tế là trọng tâm của hội nhập quốc tế ở Việt Nam."
+  },
+  {
+    question: "Năm 2007 đánh dấu sự kiện lịch sử nào trong tiến trình hội nhập của Việt Nam?",
+    options: ["Gia nhập ASEAN", "Gia nhập WTO", "Tham gia AFTA", "Trở thành thành viên APEC"],
+    correct: 1,
+    explanation: "Năm 2007, Việt Nam gia nhập Tổ chức Thương mại Thế giới (WTO) – dấu mốc ý nghĩa nhất, đánh dấu sự hội nhập toàn diện vào nền kinh tế toàn cầu."
+  },
+  {
+    question: "Phương thức nào KHÔNG phải là phương thức chủ yếu của hội nhập kinh tế quốc tế?",
+    options: ["Hợp tác kinh tế song phương", "Hội nhập kinh tế khu vực", "Hội nhập kinh tế toàn cầu", "Đóng cửa bảo hộ nền kinh tế"],
+    correct: 3,
+    explanation: "Các phương thức chủ yếu gồm: Hợp tác kinh tế song phương, hội nhập kinh tế khu vực và hội nhập kinh tế toàn cầu. Đóng cửa bảo hộ đi ngược lại bản chất hội nhập."
+  },
+  {
+    question: "Theo thống kê, giá trị xuất khẩu của Việt Nam năm 1996 là bao nhiêu?",
+    options: ["0,789 tỉ USD", "0,726 tỉ USD", "11,14 tỉ USD", "39,80 tỉ USD"],
+    correct: 1,
+    explanation: "Theo Bảng 1.1 (Nguồn: Tổng cục Thống kê và Bộ Công Thương), giá trị xuất khẩu năm 1996 là 0,726 tỉ USD."
+  },
+  {
+    question: "Tác động của hội nhập đối với kinh tế vĩ mô và thể chế là gì?",
+    options: ["Giảm đầu tư trực tiếp nước ngoài (FDI)", "Thúc đẩy cải cách hành chính và hoàn thiện hệ thống pháp luật", "Làm suy yếu an ninh quốc phòng", "Chỉ tập trung vào xuất khẩu nông sản"],
+    correct: 1,
+    explanation: "Hội nhập giúp thúc đẩy cải cách hành chính, hoàn thiện hệ thống pháp luật và thể chế kinh tế, tạo môi trường kinh doanh ngày càng bình đẳng."
+  }
+];
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2 }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+};
+
+const Navbar = ({ activeSection }) => {
+  const navItems = [
+    { id: "hero", label: "Trang chủ" },
+    { id: "concepts", label: "Khái niệm" },
+    { id: "scope", label: "Phạm vi" },
+    { id: "timeline", label: "Tiến trình" },
+    { id: "chart", label: "Xuất nhập khẩu" },
+    { id: "achievements", label: "Thành tựu" },
+    { id: "quiz", label: "Ôn tập" },
+  ];
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => scrollTo('hero')}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-red-500 flex items-center justify-center text-white font-bold text-lg">V</div>
+            <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-red-600 hidden sm:block">
+              Hội Nhập KTQT
+            </span>
+          </div>
+          <div className="hidden md:flex space-x-1 overflow-x-auto">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => scrollTo(item.id)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeSection === item.id 
+                    ? "bg-blue-100 text-blue-700" 
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+const HeroSection = () => {
+  return (
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-900">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop" 
+          alt="Global Network" 
+          className="w-full h-full object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/60 via-slate-900/80 to-slate-900"></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-8">
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-blue-200 text-sm font-medium uppercase tracking-wider">
+            <Globe className="w-4 h-4" /> Bài học Tương tác
+          </motion.div>
+          
+          <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-tight">
+            KHÁI QUÁT VỀ <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
+              HỘI NHẬP KINH TẾ QUỐC TẾ
+            </span>
+          </motion.h1>
+          
+          <motion.p variants={fadeInUp} className="max-w-3xl mx-auto text-xl md:text-2xl text-gray-300 font-light">
+            Hành trình Việt Nam kết nối, tự cường và phát triển cùng nền kinh tế thế giới qua gần 40 năm đổi mới.
+          </motion.p>
+          
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+            <button 
+              onClick={() => document.getElementById('concepts')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.5)] flex items-center justify-center gap-2 hover:scale-105"
+            >
+              Khám Phá Bài Học <ChevronRight className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => document.getElementById('timeline')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold text-lg transition-all backdrop-blur-sm flex items-center justify-center gap-2 hover:scale-105"
+            >
+              Xem Tiến Trình Lịch Sử
+            </button>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+const ConceptsSection = () => {
+  const methods = [
+    {
+      title: "Song phương",
+      desc: "Hợp tác kinh tế giữa hai quốc gia dựa trên thỏa thuận chung.",
+      icon: <Users className="w-8 h-8 text-blue-500" />,
+      color: "border-blue-500",
+      bg: "bg-blue-50",
+      img: "https://images.unsplash.com/photo-1556761175-5973dc0f32f7?q=80&w=1632&auto=format&fit=crop"
+    },
+    {
+      title: "Khu vực",
+      desc: "Liên kết giữa các quốc gia trong một khu vực địa lý nhất định (VD: ASEAN).",
+      icon: <Network className="w-8 h-8 text-purple-500" />,
+      color: "border-purple-500",
+      bg: "bg-purple-50",
+      img: "https://images.unsplash.com/photo-1529156069898-49953eb1b5ce?q=80&w=1740&auto=format&fit=crop"
+    },
+    {
+      title: "Toàn cầu",
+      desc: "Tham gia vào các tổ chức kinh tế lớn mạnh trên toàn thế giới (VD: WTO).",
+      icon: <Globe className="w-8 h-8 text-orange-500" />,
+      color: "border-orange-500",
+      bg: "bg-orange-50",
+      img: "https://images.unsplash.com/photo-1586528116311-ad8ed7c1590f?q=80&w=2070&auto=format&fit=crop"
+    }
+  ];
+
+  return (
+    <section id="concepts" className="py-24 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">Khái niệm & Bản chất</h2>
+          <div className="w-24 h-1 bg-blue-600 mx-auto mb-8 rounded-full"></div>
+          
+          <div className="grid md:grid-cols-2 gap-8 text-left max-w-5xl mx-auto">
+            <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
+              <h3 className="text-xl font-bold text-blue-700 mb-3 flex items-center gap-2">
+                <BookOpen className="w-5 h-5"/> Khái niệm
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                Hội nhập quốc tế là sự giao lưu, hợp tác, gắn kết nền kinh tế giữa các quốc gia, các tổ chức kinh tế khu vực và toàn cầu. Đây là quá trình quốc tế hoá kinh tế trên cơ sở các nước <strong>tự nguyện tham gia</strong> và đồng ý thực hiện các điều khoản, nguyên tắc đã thoả thuận.
+              </p>
+            </div>
+            <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
+              <h3 className="text-xl font-bold text-red-600 mb-3 flex items-center gap-2">
+                <Settings className="w-5 h-5"/> Bản chất
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                Quá trình hội nhập kinh tế quốc tế được hình thành và phát triển cùng với sự phát triển của quá trình <strong>tự do hoá thương mại</strong> và xu hướng mở cửa nền kinh tế của các quốc gia.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
+          <h3 className="text-2xl font-bold text-center text-gray-800 mb-10">Các Phương Thức Chủ Yếu</h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {methods.map((method, idx) => (
+              <motion.div 
+                key={idx} 
+                variants={fadeInUp}
+                className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:-translate-y-2"
+              >
+                <div className="h-48 overflow-hidden relative">
+                  <img src={method.img} alt={method.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <h4 className="absolute bottom-4 left-4 text-2xl font-bold text-white">{method.title}</h4>
+                </div>
+                <div className="p-6 relative">
+                  <div className={`absolute -top-10 right-6 w-14 h-14 ${method.bg} border-2 ${method.color} rounded-full flex items-center justify-center shadow-md bg-white`}>
+                    {method.icon}
+                  </div>
+                  <p className="text-gray-600 mt-2">{method.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+const ScopeSection = () => {
+  const fields = [
+    { name: "Chính trị", x: "-30%", y: "-35%", delay: 0.1 },
+    { name: "Quốc phòng & An ninh", x: "30%", y: "-35%", delay: 0.2 },
+    { name: "Văn hóa & Xã hội", x: "-45%", y: "0%", delay: 0.3 },
+    { name: "Giáo dục", x: "45%", y: "0%", delay: 0.4 },
+    { name: "Khoa học & Công nghệ", x: "-30%", y: "35%", delay: 0.5 },
+    { name: "Các lĩnh vực khác", x: "30%", y: "35%", delay: 0.6 },
+  ];
+
+  return (
+    <section id="scope" className="py-24 bg-slate-50 relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Phạm Vi Hội Nhập</h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">Việt Nam thực hiện hội nhập quốc tế trên nhiều lĩnh vực, tạo sức mạnh tổng hợp cho quốc gia.</p>
+        </motion.div>
+
+        {/* Desktop Interactive Graph */}
+        <div className="hidden md:flex relative h-[500px] items-center justify-center mt-10">
+          <motion.div 
+            initial={{ scale: 0 }} 
+            whileInView={{ scale: 1 }} 
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className="z-20 w-64 h-64 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full shadow-2xl flex flex-col items-center justify-center text-white border-4 border-white p-6 text-center cursor-pointer hover:scale-105 transition-transform"
+          >
+            <Globe className="w-12 h-12 mb-2" />
+            <h3 className="text-xl font-bold">Kinh Tế</h3>
+            <p className="text-xs text-blue-100 mt-2 uppercase tracking-widest font-semibold bg-white/20 px-3 py-1 rounded-full">Trọng tâm cốt lõi</p>
+          </motion.div>
+
+          {fields.map((field, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, x: 0, y: 0 }}
+              whileInView={{ opacity: 1, x: field.x, y: field.y }}
+              viewport={{ once: true }}
+              transition={{ delay: field.delay, duration: 0.8, type: "spring" }}
+              className="absolute z-10 bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-default whitespace-nowrap"
+            >
+              {field.name}
+            </motion.div>
+          ))}
+          
+          {/* Connecting SVG lines could be added here, but simple absolute positioning gives the "orbit" feel */}
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden flex flex-col gap-4">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 rounded-2xl shadow-lg text-center relative overflow-hidden">
+            <Globe className="w-16 h-16 opacity-20 absolute -right-4 -bottom-4" />
+            <h3 className="text-2xl font-bold relative z-10">Kinh Tế</h3>
+            <p className="text-blue-100 mt-1 relative z-10 font-medium">Trọng tâm của hội nhập quốc tế</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {fields.map((field, idx) => (
+              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center text-sm font-medium text-gray-700">
+                {field.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const TimelineSection = () => {
+  return (
+    <section id="timeline" className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Tiến Trình Lịch Sử</h2>
+          <p className="text-xl text-gray-600">Gần 40 năm đổi mới và hội nhập của Việt Nam</p>
+          <div className="w-24 h-1 bg-red-500 mx-auto mt-6 rounded-full"></div>
+        </motion.div>
+
+        <div className="relative max-w-4xl mx-auto">
+          {/* Vertical Line */}
+          <div className="absolute left-4 md:left-1/2 md:-ml-[2px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-100 via-blue-400 to-blue-100"></div>
+
+          <div className="space-y-12 relative z-10">
+            {timelineData.map((item, index) => {
+              const isEven = index % 2 === 0;
+              return (
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, y: 50, x: isEven ? -50 : 50 }}
+                  whileInView={{ opacity: 1, y: 0, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6 }}
+                  className={`flex flex-col md:flex-row items-start ${isEven ? 'md:flex-row-reverse' : ''}`}
+                >
+                  <div className="hidden md:block w-1/2"></div>
+                  
+                  {/* Timeline Node */}
+                  <div className="absolute left-4 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white border-4 border-blue-500 shadow-lg text-lg z-20">
+                    {item.icon}
+                  </div>
+
+                  {/* Content Card */}
+                  <div className={`ml-12 md:ml-0 md:w-1/2 ${isEven ? 'md:pr-12 text-left md:text-right' : 'md:pl-12 text-left'}`}>
+                    <div className="bg-slate-50 p-6 rounded-2xl shadow-md border border-slate-100 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-2 h-full bg-blue-500 group-hover:bg-red-500 transition-colors"></div>
+                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mb-3">
+                        {item.year}
+                      </span>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{item.event}</h3>
+                      <p className="text-gray-600">{item.desc}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ChartSection = () => {
+  const [chartType, setChartType] = useState('bar');
+
+  return (
+    <section id="chart" className="py-24 bg-slate-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="text-center mb-12">
+          <h2 className="text-3xl md:text-5xl font-bold mb-4">Kim Ngạch Xuất Nhập Khẩu</h2>
+          <p className="text-lg text-gray-400">Giai đoạn 1986 – 2022 (Đơn vị: Tỉ USD)</p>
+        </motion.div>
+
+        <div className="bg-slate-800 rounded-3xl p-4 md:p-8 shadow-2xl border border-slate-700">
+          <div className="flex justify-end mb-6 space-x-2">
+            <button 
+              onClick={() => setChartType('bar')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${chartType === 'bar' ? 'bg-blue-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'}`}
+            >
+              Biểu đồ cột
+            </button>
+            <button 
+              onClick={() => setChartType('line')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${chartType === 'line' ? 'bg-blue-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'}`}
+            >
+              Biểu đồ đường
+            </button>
+          </div>
+
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'bar' ? (
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                  <XAxis dataKey="year" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }}/>
+                  <Bar dataKey="export" name="Giá trị xuất khẩu" fill="#3b82f6" radius={[4, 4, 0, 0]} animationDuration={1500} />
+                  <Bar dataKey="import" name="Giá trị nhập khẩu" fill="#f97316" radius={[4, 4, 0, 0]} animationDuration={1500} />
+                </BarChart>
+              ) : (
+                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                  <XAxis dataKey="year" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }}/>
+                  <Line type="monotone" dataKey="export" name="Giá trị xuất khẩu" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6 }} activeDot={{ r: 8 }} animationDuration={1500} />
+                  <Line type="monotone" dataKey="import" name="Giá trị nhập khẩu" stroke="#f97316" strokeWidth={4} dot={{ r: 6 }} activeDot={{ r: 8 }} animationDuration={1500} />
+                </LineChart>
+              )}
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="mt-8 p-4 bg-slate-700/50 rounded-xl border border-slate-600">
+            <h4 className="flex items-center gap-2 text-blue-400 font-bold mb-2"><TrendingUp className="w-5 h-5"/> Nhận xét xu hướng:</h4>
+            <p className="text-gray-300 leading-relaxed text-sm md:text-base">
+              Nhìn vào dữ liệu, có thể thấy sự tăng trưởng vượt bậc. Năm 1986, xuất khẩu chỉ đạt <strong>0,789 tỉ USD</strong>. Đến năm 1996, xuất khẩu là <strong>0,726 tỉ USD</strong> trong khi nhập khẩu là 11,14 tỉ USD. Nhờ hội nhập sâu rộng, đến năm 2022, xuất khẩu đã bứt phá lên tới <strong>371,30 tỉ USD</strong>.
+            </p>
+            <p className="text-xs text-gray-500 mt-3 text-right">Nguồn: Tổng cục Thống kê và Bộ Công Thương</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const AchievementsSection = () => {
+  const blocks = [
+    {
+      title: "Thương mại & Đầu tư",
+      icon: <TrendingUp className="w-10 h-10 mb-4 text-emerald-500" />,
+      items: [
+        "Thương mại hai chiều tăng trưởng mạnh mẽ.",
+        "Thu hút nguồn vốn FDI và ODA thuận lợi.",
+        "Xuất khẩu tăng từ 0,789 tỉ USD (1986) lên 371,30 tỉ USD (2022).",
+        "Nông - thủy sản và công nghiệp chế biến đứng hàng đầu thế giới."
+      ],
+      color: "from-emerald-500 to-teal-700",
+      bgClass: "bg-emerald-50 text-emerald-900"
+    },
+    {
+      title: "Kinh tế vĩ mô & Thể chế",
+      icon: <BookOpen className="w-10 h-10 mb-4 text-blue-500" />,
+      items: [
+        "Ổn định kinh tế vĩ mô, huy động nguồn lực phát triển.",
+        "Nâng cao vị thế quốc tế, thủ tục minh bạch, đơn giản hóa.",
+        "Áp dụng kỹ thuật công nghệ mới, kinh nghiệm quản lý tiên tiến.",
+        "Hoàn thiện hệ thống pháp luật, tạo môi trường bình đẳng."
+      ],
+      color: "from-blue-500 to-indigo-700",
+      bgClass: "bg-blue-50 text-blue-900"
+    },
+    {
+      title: "Xã hội & An ninh",
+      icon: <ShieldCheck className="w-10 h-10 mb-4 text-purple-500" />,
+      items: [
+        "Nâng cao chất lượng an sinh xã hội.",
+        "Cải thiện thu nhập và gia tăng phúc lợi xã hội.",
+        "Tăng cường bảo vệ môi trường sinh thái.",
+        "Đảm bảo an ninh quốc phòng, giữ vững ổn định chính trị."
+      ],
+      color: "from-purple-500 to-fuchsia-700",
+      bgClass: "bg-purple-50 text-purple-900"
+    }
+  ];
+
+  return (
+    <section id="achievements" className="py-24 bg-gray-50 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Thành Tựu & Tác Động</h2>
+          <p className="text-xl text-gray-600">Sự chuyển mình mạnh mẽ của Việt Nam nhờ hội nhập</p>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {blocks.map((block, idx) => (
+            <motion.div 
+              key={idx}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={scaleIn}
+              transition={{ delay: idx * 0.2 }}
+              className="bg-white rounded-3xl shadow-xl overflow-hidden group hover:-translate-y-2 transition-all duration-300"
+            >
+              <div className={`h-3 bg-gradient-to-r ${block.color}`}></div>
+              <div className="p-8">
+                {block.icon}
+                <h3 className="text-2xl font-bold mb-6 text-gray-900">{block.title}</h3>
+                <ul className="space-y-4">
+                  {block.items.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 leading-relaxed">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ConclusionAndQuizSection = () => {
+  const [currentQ, setCurrentQ] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+
+  const q = quizQuestions[currentQ];
+
+  const handleSelect = (idx) => {
+    if (!isSubmitted) setSelected(idx);
+  };
+
+  const handleSubmit = () => {
+    if (selected === null) return;
+    setIsSubmitted(true);
+    if (selected === q.correct) {
+      setScore(s => s + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentQ < quizQuestions.length - 1) {
+      setCurrentQ(c => c + 1);
+      setSelected(null);
+      setIsSubmitted(false);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentQ(0);
+    setSelected(null);
+    setIsSubmitted(false);
+    setScore(0);
+    setShowResult(false);
+  };
+
+  return (
+    <>
+      {/* Conclusion Banner */}
+      <section className="py-20 relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 text-white text-center">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810730811-97b69389e81b?q=80&w=2070&auto=format&fit=crop')] opacity-20 bg-cover bg-center mix-blend-overlay"></div>
+        <div className="max-w-4xl mx-auto px-4 relative z-10">
+          <Globe className="w-16 h-16 mx-auto mb-6 text-blue-300 opacity-80 animate-pulse" />
+          <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wider drop-shadow-lg">
+            Việt Nam – Chủ Động Hội Nhập, <br className="hidden md:block"/> Vững Bước Tương Lai
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-8 rounded-full"></div>
+          <p className="text-xl md:text-2xl text-blue-100 font-light">
+            Từ việc mở cửa hợp tác, tham gia các tổ chức kinh tế lớn mạnh đến việc định hình luật lệ thế giới, hội nhập kinh tế quốc tế đã và đang là động lực cốt lõi đưa Việt Nam phát triển bền vững và phồn vinh.
+          </p>
+        </div>
+      </section>
+
+      {/* Quiz Section */}
+      <section id="quiz" className="py-24 bg-white relative">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 flex justify-center items-center gap-3">
+              <PlayCircle className="w-8 h-8 text-blue-600" /> Ôn Tập Kiến Thức
+            </h2>
+            <p className="text-gray-600">Kiểm tra nhanh những gì bạn vừa tìm hiểu</p>
+          </div>
+
+          {!showResult ? (
+            <div className="bg-slate-50 p-6 md:p-10 rounded-3xl shadow-xl border border-slate-200 relative overflow-hidden">
+              {/* Progress Bar */}
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-200">
+                <div 
+                  className="h-full bg-blue-600 transition-all duration-300" 
+                  style={{ width: `${((currentQ + 1) / quizQuestions.length) * 100}%` }}
+                ></div>
+              </div>
+
+              <div className="flex justify-between items-center mb-6 mt-2 text-sm font-semibold text-gray-500 uppercase tracking-widest">
+                <span>Câu hỏi {currentQ + 1} / {quizQuestions.length}</span>
+                <span>Điểm: {score}</span>
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-8">{q.question}</h3>
+
+              <div className="space-y-3 mb-8">
+                {q.options.map((opt, idx) => {
+                  let btnClass = "border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 text-gray-700";
+                  if (selected === idx) btnClass = "border-blue-500 bg-blue-100 text-blue-800 ring-2 ring-blue-500 ring-opacity-50";
+                  
+                  if (isSubmitted) {
+                    if (idx === q.correct) {
+                      btnClass = "border-green-500 bg-green-100 text-green-800 ring-2 ring-green-500";
+                    } else if (idx === selected) {
+                      btnClass = "border-red-500 bg-red-100 text-red-800 ring-2 ring-red-500";
+                    } else {
+                      btnClass = "border-gray-200 bg-gray-50 text-gray-400 opacity-50";
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelect(idx)}
+                      disabled={isSubmitted}
+                      className={`w-full text-left p-4 rounded-xl border-2 font-medium transition-all flex items-center justify-between ${btnClass}`}
+                    >
+                      <span>{opt}</span>
+                      {isSubmitted && idx === q.correct && <CheckCircle2 className="text-green-600 w-5 h-5" />}
+                      {isSubmitted && idx === selected && idx !== q.correct && <XCircle className="text-red-600 w-5 h-5" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <AnimatePresence>
+                {isSubmitted && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className={`mb-8 p-4 rounded-xl text-sm ${selected === q.correct ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-orange-50 border border-orange-200 text-orange-800'}`}
+                  >
+                    <p className="font-bold mb-1">{selected === q.correct ? '🎉 Chính xác!' : '💡 Chưa chính xác.'}</p>
+                    <p>{q.explanation}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex justify-end">
+                {!isSubmitted ? (
+                  <button 
+                    onClick={handleSubmit}
+                    disabled={selected === null}
+                    className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                  >
+                    Kiểm tra đáp án
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  >
+                    {currentQ < quizQuestions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-slate-900 text-white p-10 rounded-3xl shadow-2xl text-center"
+            >
+              <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-green-400 to-blue-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                <CheckCircle2 className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-3xl font-bold mb-2">Hoàn thành bài ôn tập!</h3>
+              <p className="text-gray-400 mb-8">Bạn đã trả lời đúng {score} trên tổng số {quizQuestions.length} câu hỏi.</p>
+              
+              <div className="text-6xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                {Math.round((score / quizQuestions.length) * 100)}%
+              </div>
+
+              <button 
+                onClick={handleRestart}
+                className="px-8 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
+              >
+                <PlayCircle className="w-5 h-5" /> Làm lại từ đầu
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </section>
+    </>
+  );
+};
+
+const App = () => {
+  const [activeSection, setActiveSection] = useState("hero");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["hero", "concepts", "scope", "timeline", "chart", "achievements", "quiz"];
+      let current = "hero";
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 150) {
+            current = section;
+          }
+        }
+      }
+      setActiveSection(current);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen font-sans bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-200 selection:text-blue-900">
+      <Navbar activeSection={activeSection} />
+      
+      <main>
+        <HeroSection />
+        <ConceptsSection />
+        <ScopeSection />
+        <TimelineSection />
+        <ChartSection />
+        <AchievementsSection />
+        <ConclusionAndQuizSection />
+      </main>
+
+      <footer className="bg-slate-950 text-gray-400 py-8 text-center border-t border-slate-900">
+        <p className="mb-2">© 2026 - Website Thuyết Trình Tương Tác</p>
+        <p className="text-sm">Chủ đề: Khái quát về Hội nhập Kinh tế Quốc tế và Việt Nam</p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
